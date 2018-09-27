@@ -1,0 +1,132 @@
+.field--name-field-video-transcript.transcript-hidden {
+  display: none;
+}
+
+.vjs-poster {
+    background-size: auto;
+}
+
+.video-js .vjs-dock-shelf {
+    left: 0;
+    text-align: left !important;
+}
+
+.video-js .vjs-share-control span,
+.video-js .vjs-download-control span,
+.video-js .vjs-youtube-control span,
+.video-js .vjs-transcript-control span {
+	position: absolute !important;
+    top: -9999px !important;
+    left: -9999px !important;
+}
+
+.video-js .vjs-dock-shelf {
+	padding: 0 !important;
+}
+
+.vjs-dock-shelf .vjs-button.vjs-share-control,
+.vjs-dock-shelf .vjs-button.vjs-download-control,
+.vjs-dock-shelf .vjs-button.vjs-youtube-control,
+.vjs-dock-shelf .vjs-button.vjs-transcript-control,
+.vjs-dock-shelf .vjs-button.vjs-brand-control {
+    position: relative;
+    padding: .7em !important;
+}
+
+.vjs-dock-shelf .vjs-button.vjs-share-control {
+	margin: 0 !important;
+}
+
+.vjs-dock-shelf .vjs-button.vjs-brand-control,
+.vjs-dock-shelf .vjs-button.vjs-brand-control img {
+	float: right;
+}
+
+.vjs-dock-shelf .vjs-button.vjs-brand-control img {
+	width: 60%;
+}
+
+.vjs-dock-shelf .vjs-button.vjs-download-control:before,
+.vjs-dock-shelf .vjs-button.vjs-youtube-control:before,
+.vjs-dock-shelf .vjs-button.vjs-transcript-control:before,
+.vjs-dock-shelf .vjs-button.vjs-brand-control:before {
+    position: relative;
+    vertical-align: top;
+    font-family: 'FontAwesome';
+    color: #FFFFFF;
+    font-size: .8em;
+    line-height: 1em;
+    text-align: center;
+}
+
+.video-js .vjs-download-control:before {
+    content: "\f019";
+}
+
+.video-js .vjs-youtube-control:before {
+    content: "\f167";
+}
+
+.video-js .vjs-transcript-control:before {
+    content: "\f15c";
+}
+
+.vjs-big-play-button:before {
+	font-size: 1.5em;
+}
+
+.vjs-menu li.vjs-selected {
+	color: #ffffff !important;
+	background-color: #654C10 !important;
+}
+
+.video-js .vjs-icon-audio-description:hover,
+.vjs-icon-audio-description:focus,
+.video-js .vjs-play-control:hover,
+.vjs-play-control:focus,
+.vjs-captions-button:hover,
+.vjs-captions-button:focus,
+.vjs-menu li.vjs-menu-item:focus {
+	background-color: #654C10 !important;
+	color: #ffffff !important;
+	text-shadow: 0px 0px 12px rgba(0, 0, 0, 1);
+}
+
+.vjs-menu li.vjs-menu-item:hover {
+    background-color: #73859f !important;
+    background-color: rgba(115, 133, 159, 0.5) !important;
+}
+
+.vjs-texttrack-settings {
+	display: none;
+}
+
+.vjs-menu-button-popup .vjs-menu ul.vjs-menu-content {
+    width: 9em !important;
+    max-width: initial;
+}
+
+.vjs-captions-button .vjs-menu li {
+	text-transform: capitalize;
+	font-size: 1em;
+}
+
+@media screen and (min-width: 600px) {
+	.video-js {
+		font-size: 1em !important;
+	}
+	.vjs-dock-shelf .vjs-button.vjs-brand-control img {
+		width: 100%;
+	}
+	.video-js .vjs-control.vjs-close-button .vjs-icon-placeholder:before {
+		font-size: 3em !important;
+	}
+
+	.vjs-social-overlay .vjs-control.vjs-close-button .vjs-icon-placeholder:before {
+		line-height: normal !important;
+	}
+
+	.vjs-big-play-button:before {
+		font-size: normal;
+	}
+}

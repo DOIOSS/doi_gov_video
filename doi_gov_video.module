@@ -1,0 +1,209 @@
+<?php
+/**
+ * @file
+ * Code for the DOI.gov Video feature.
+ */
+
+include_once 'doi_gov_video.features.inc';
+
+define('DOI_GOV_VIDEO_PLAYER_DEFAULT_LOGO', drupal_get_path('module', 'doi_gov_video') . '/images/player-logo.png');
+define('DOI_GOV_VIDEO_PLAYER_DOWNLOAD_ICON', drupal_get_path('module', 'doi_gov_video') . '/images/player-download.png');
+define('DOI_GOV_VIDEO_PLAYER_TRANSCRIPT_ICON', drupal_get_path('module', 'doi_gov_video') . '/images/player-transcript.png');
+define('DOI_GOV_VIDEO_PLAYER_YOUTUBE_ICON', drupal_get_path('module', 'doi_gov_video') . '/images/player-youtube.png');
+
+/**
+ * Implements hook_menu().
+ */
+function doi_gov_video_menu() {
+  $items = array();
+  $items['video/download/%file'] = array(
+    'page callback' => 'doi_gov_video_file_download',
+    'page arguments' => array(2),
+    'access callback' => TRUE,
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_field_extra_fields().
+ */
+function doi_gov_video_field_extra_fields() {
+  module_load_include('inc', 'doi_gov_core');
+
+  $extra = array();
+  $extra['node']['video']['display'] = array_merge_recursive(
+    _doi_gov_core_extra_field_content_type_label(),
+    _doi_gov_core_extra_field_title(),
+    _doi_gov_core_extra_field_publication_date(),
+    _doi_gov_core_extra_field_terms_type()
+  );
+
+  return $extra;
+}
+
+/**
+ * Implements hook_preprocess_node().
+ */
+function doi_gov_video_preprocess_node(&$vars) {
+  module_load_include('inc', 'doi_gov_core');
+
+  if ($vars['type'] == 'video') {
+    $vars['view_mode'] = $vars['elements']['#view_mode'];
+    // Provide a distinct $teaser boolean.
+    $vars['embedded'] = $vars['view_mode'] == 'embedded_media';
+    
+    _doi_gov_core_set_read_more_title($vars, "Watch the Video");
+    if ($vars['embedded']) {
+      unset($vars['content']['links']['node']['#links']['node-readmore']);
+    }
+  }
+}
+
+/**
+ * Page callback for video downloads.
+ */
+function doi_gov_video_file_download($file) {
+  file_transfer($file->uri, array(
+    'Content-Type' => mime_header_encode($file->filemime),
+    'Content-Disposition' => 'attachment; filename="' . $file->filename . '"',
+    'Content-Length' => $file->filesize,
+    'Content-Transfer-Encoding' => 'binary',
+  ));
+}
+
+/**
+ * Implements hook_preprocess_field().
+ */
+function doi_gov_video_preprocess_field(&$vars) {
+  if ($vars['element']['#field_name'] == 'field_video_transcript') {
+    // Add a class to initiall hide the transcript.
+    $vars['classes_array'][] = 'transcript-hidden';
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function doi_gov_video_preprocess_panels_pane(&$variables) {
+  // Change the formatter for video based on "meeting mode" field.
+  if ($variables['pane']->type == "entity_field" && $variables['pane']->subtype == 'node:field_video_file') {
+    $content = &$variables['content'];
+    if ($items = field_get_items('node', $content['#object'], 'field_video_meeting_mode')) {
+      if ($items[0]['value']) {
+        //$content[0]['#preset'] = 'doi_video_meeting_mode';
+        $variables['classes_array'][] = 'meeting-mode';        
+      }
+    }
+  }
+
+}
+
+/**
+ * Implements hook_process_HOOK().
+ */
+function doi_gov_video_process_videojs(&$vars) {
+  global $base_url;
+    // Add entity data and settings for player.
+    $_node = entity_metadata_wrapper('node', $vars['entity']);
+
+    if (!empty($_node->field_video_caption_file)) {
+      $caption_file = $_node->field_video_caption_file->value();
+
+      $caption_config = array(
+        'default' => TRUE,
+      'kind' => 'captions',
+      'langcode' => 'en',
+      'label' => 'English',
+      'src' => array(
+        'safe' => file_create_url($caption_file['uri']),
+        ),
+        'filemime' => array(
+          'safe' => 'text/vtt'
+        ),
+      );
+      
+      $vars['tracks'] = array($caption_config);
+    }
+
+    if (!empty($_node->field_thumbnail_image)) {
+      $thumbnail = $_node->field_thumbnail_image->value();
+      //$vars['config']['image'] = file_create_url($thumbnail['uri']);
+      $vars['poster'] = file_create_url($thumbnail['uri']);
+    }
+
+    $youtube = $_node->field_youtube_link->value();
+    $video = $_node->field_video_file->value();
+    $video_size = format_size($video['filesize']);
+    $ad_video = $_node->field_audio_described_video_file->value();
+
+    if (drupal_is_front_page())
+    {
+      $video_data = array(
+      'player_id' => $vars['player_id'],
+      'logo' => array(
+        'file' => base_path() . variable_get('doi_gov_video_player_logo', DOI_GOV_VIDEO_PLAYER_DEFAULT_LOGO),
+        'label' => t('DOI Logo'),
+        'link' => $base_url,
+      ),
+      'url' => base_path() . "video/download/{$video['fid']}",
+      'files' => array(
+        'src' => file_create_url($video['uri']),
+        'ad_src' => file_create_url($ad_video['uri']),
+      ),
+      'youtube' => $youtube['url'],
+      'buttons' => array(
+        'download' => array(
+          'label' => t('Download Video (!size)', array('!size' => $video_size)),
+        ),
+        'youtube' => array(
+          'label' => t('Watch on YouTube'),
+        ),        
+      ),
+      'size' => $video_size,
+    );
+  }
+  else
+  {
+    $video_data = array(
+      'player_id' => $vars['player_id'],
+      'logo' => array(
+        'file' => base_path() . variable_get('doi_gov_video_player_logo', DOI_GOV_VIDEO_PLAYER_DEFAULT_LOGO),
+        'label' => t('DOI Logo'),
+        'link' => $base_url,
+      ),
+      'url' => base_path() . "video/download/{$video['fid']}",
+      'files' => array(
+        'src' => file_create_url($video['uri']),
+        'ad_src' => file_create_url($ad_video['uri']),
+      ),
+      'youtube' => $youtube['url'],
+      'buttons' => array(
+        'download' => array(
+          'label' => t('Download Video (!size)', array('!size' => $video_size)),
+        ),
+        'transcript' => array(
+          'label' => t('Toggle Transcript'),
+        ),
+        'youtube' => array(
+          'label' => t('Watch on YouTube'),
+        ),        
+      ),
+      'size' => $video_size,
+    );
+  }
+
+  drupal_add_js(drupal_get_path('module', 'doi_gov_video') . '/js/doi_gov_videojs.js');
+  drupal_add_css(drupal_get_path('module', 'doi_gov_video') . '/css/doi_gov_video.css');
+  drupal_add_css(libraries_get_path('video-js') . '/videojs-social.css');
+  drupal_add_js(libraries_get_path('video-js') . '/videojs-social.min.js');
+  drupal_add_css(libraries_get_path('video-js') . '/videojs-dock.css');
+  drupal_add_js(libraries_get_path('video-js') . '/videojs-dock.min.js');
+  drupal_add_js(libraries_get_path('video-js') . '/videojs.ga.min.js');
+  drupal_add_js(array(
+    'doi_gov_video' => array(
+      'instances' => array($vars['player_id'] => $video_data),
+    ),
+  ), 'setting');
+}
