@@ -1,1 +1,1 @@
-# doi_gov_video
+# DOI.gov Video Player
